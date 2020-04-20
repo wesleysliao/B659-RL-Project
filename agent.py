@@ -101,6 +101,19 @@ class RandomAgent(DyadSliderAgent):
         return self.action_space.sample()
 
 
+class FixedAgent(DyadSliderAgent):
+
+    def action_policy(self, observation):
+        error, error_dot, force_interaction, force_interaction_dot = observation
+
+        if error > 0:
+            action = -1
+        else:
+            action = 1
+
+        return action
+
+
 
 class TDAgent(DyadSliderAgent):
 
@@ -143,8 +156,6 @@ class TDAgent(DyadSliderAgent):
         a_old = self.action_history[-1]
         a_new = self.action_policy(s_new)
 
-        print(s_old, s_new, a_old, a_new, subj_reward)
-
         if is_terminal:
             self.Q_table[s_old, a_old] += self.alpha * (subj_reward - self.Q_table[s_old, a_old])
         else:
@@ -179,8 +190,6 @@ class TDAgent(DyadSliderAgent):
 
 
     def action_to_force(self, action):
-
-        print(self.force, self.force_delta_max, self.force_max, self.force_min)
 
         if action == 1:
             return min(self.force + self.force_delta_max, self.force_max)
