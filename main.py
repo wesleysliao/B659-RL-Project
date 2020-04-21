@@ -8,7 +8,7 @@ from agent import TDAgent, FixedAgent
 
 def dyad_slider_prep(seed = 1234):
 
-    random_offset = np.random.random() * 1000.0
+    random_offset = 0.0 #np.random.random() * 1000.0
 
     def reference_fn(t):
         offset_t = t + random_offset
@@ -20,14 +20,16 @@ def dyad_slider_prep(seed = 1234):
                        )
 
     env = gym.make('gym_dyad_slider:DyadSlider-v0',
-                   reference_trajectory_fn = reference_fn)
+                   reference_trajectory_fn = reference_fn,
 
-    env.agent_force_min = -100.0 #N
-    env.agent_force_max = 100.0 #N
+                   agent_force_min = -100.0, #N
+                   agent_force_max = 100.0, #N
 
-    env.slider_mass = 3.0 #kg
-    env.slider_range = np.array([-0.125, 0.125]) #m
+                   slider_mass = 3.0, #kg
+                   slider_limits = np.array([-0.125, 0.125]), #m
 
+                   episode_length_s = 20.0,
+                   )
 
     return env
 
@@ -37,15 +39,24 @@ def dyad_slider_prep(seed = 1234):
 if __name__ == "__main__":
 
     env = dyad_slider_prep()
-    p1 = TDAgent(perspective = 0)
-    p2 = FixedAgent(perspective = 1)
+    p1 = FixedAgent(perspective = 0,
+                    force_max = env.agent_force_max,
+                    force_min = env.agent_force_min,
+                    c_effort = 0.0,
+                    )
+    p2 = TDAgent(perspective = 1,
+                    force_max = env.agent_force_max,
+                    force_min = env.agent_force_min,
+                    c_effort = 0.0,
+                    )
 
-    episodes = 4000
-    max_steps = 3000
+    episodes = 1000
+    max_steps = 2000
 
     rewards = np.zeros((episodes,))
 
     for episode in range(episodes):
+        print(episode)
         env_state = env.reset()
 
         episode_reward_total = 0.0
@@ -55,10 +66,11 @@ if __name__ == "__main__":
                                                      p2.get_force(env_state)])
              episode_reward_total += env_reward
 
-             env.render()
+             if episode == episodes - 1:
+                 env.render()
 
-             p1.give_reward(env_state, env_reward, done)
-             p2.give_reward(env_reward, done)
+             #p1.give_reward(env_state, env_reward, done)
+             p2.give_reward(env_state, env_reward, done)
 
              if done:
                   env.reset()

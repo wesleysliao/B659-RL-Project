@@ -108,10 +108,22 @@ class FixedAgent(DyadSliderAgent):
 
         if error > 0:
             action = -1
-        else:
+        elif error < 0:
             action = 1
+        else:
+            action = 0
 
         return action
+
+    def action_to_force(self, action):
+        if action > 0:
+            force = action * self.force_max
+        elif action < 0:
+            force = action * self.force_min
+        else:
+            force = 0
+
+        return force
 
 
 
