@@ -20,7 +20,10 @@ def dyad_slider_prep(seed = 1234):
                        )
 
     env = gym.make('gym_dyad_slider:DyadSlider-v0',
-                   reference_trajectory_fn = reference_fn,
+                   simulation_freq_Hz = 50,
+                   action_freq_Hz = 50,
+
+                   episode_length_s = 20.0,
 
                    agent_force_min = -100.0, #N
                    agent_force_max = 100.0, #N
@@ -28,10 +31,29 @@ def dyad_slider_prep(seed = 1234):
                    slider_mass = 3.0, #kg
                    slider_limits = np.array([-0.125, 0.125]), #m
 
-                   episode_length_s = 20.0,
+                   reference_trajectory_fn = reference_fn,
                    )
 
     return env
+
+
+
+
+def empirical_eval(dyad_slider_env, agents, number_of_episodes):
+    total_reward = 0.0
+
+    env_state = dyad_slider_env.reset()
+    for episode in range(number_of_episodes):
+        for step in range(dyad_slider_env.max_episode_steps):
+             env_state, env_reward, done = dyad_slider_env.step([agents[0].get_force(env_state),
+                                                                 agents[1].get_force(env_state)])
+             total_reward += env_reward
+
+             if done:
+                  env.reset()
+                  break
+
+    return total_reward
 
 
 
@@ -50,10 +72,12 @@ if __name__ == "__main__":
                     c_effort = 0.0,
                     )
 
-    episodes = 1000
-    max_steps = 2000
+    episodes = 200000
+    eval_resolution = 100
+    eval_period = episodes / eval_resolution
+    eval_episodes = 100
 
-    rewards = np.zeros((episodes,))
+    eval_reward = np.zeros((eval_episodes,))
 
     for episode in range(episodes):
         print(episode)
@@ -61,7 +85,7 @@ if __name__ == "__main__":
 
         episode_reward_total = 0.0
 
-        for step in range(max_steps):
+        for step in range(env.max_episode_steps):
              env_state, env_reward, done = env.step([p1.get_force(env_state),
                                                      p2.get_force(env_state)])
              episode_reward_total += env_reward
@@ -76,13 +100,14 @@ if __name__ == "__main__":
                   env.reset()
                   break
 
-        rewards[episode] = episode_reward_total
+        if episode % eval_period == 0:
+            eval_reward[int(episode / eval_period)] = empirical_eval(env, [p1, p2], eval_episodes)
 
     env.close()
    
     plt.figure()
-    plt.plot(np.arange(episodes), rewards)
-    plt.ylabel("Total Reward")
+    plt.plot(np.arange(eval_episodes) * eval_period, eval_reward)
+    plt.ylabel("Quality")
     plt.xlabel("Learning Episodes")
 
     plt.show()

@@ -23,18 +23,20 @@ class DyadSliderAgent(object):
 
         self.observation_history = deque(maxlen = history_length)
         self.action_history = deque(maxlen = history_length)
+        self.reward_history = deque(maxlen = history_length)
 
         self.c_error = c_error
         self.c_effort = c_effort
 
 
-    def get_force(self, environment_state):
+    def get_force(self, environment_state, record_history = True):
         observation = self.observe(environment_state)
 
         action = self.action_policy(observation)
 
-        self.observation_history.append(observation)
-        self.action_history.append(action)
+        if record_history:
+            self.observation_history.append(observation)
+            self.action_history.append(action)
 
         self.force = self.action_to_force(action)
 
@@ -42,7 +44,10 @@ class DyadSliderAgent(object):
 
 
     def give_reward(self, reward, is_terminal):
+        self.reward_history.append(reward)
+
         subj_reward = self.subjective_reward(reward)
+
 
         if is_terminal:
             pass
