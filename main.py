@@ -85,9 +85,12 @@ if __name__ == "__main__":
                   c_effort = 0.0,
                   Q_init = 300.0,
                   force_delta_max = 0.1,
+                  epsilon_start = 0.5,
+                  epsilon_decay = 0.0001,
+                  epsilon_final = 0.01,
                   )
 
-    number_of_episodes = 10000
+    number_of_episodes = 5000
     eval_resolution = 200
     eval_period = number_of_episodes / eval_resolution
     eval_episodes = 10
@@ -113,6 +116,9 @@ if __name__ == "__main__":
                          c_effort = 0.0,
                          Q_init = 300.0,
                          force_delta_max = 0.1,
+                         epsilon_start = 0.5,
+                         epsilon_decay = 0.0001,
+                         epsilon_final = 0.01,
                         )
 
         for step in range(env.max_episode_steps):

@@ -10,7 +10,9 @@ class TDAgent(DyadSliderAgent):
                  Q_init = None,
                  discounting_coeff = 1.0,
                  learning_rate = 0.01,
-                 epsilon= 0.02,
+                 epsilon_start = 0.4,
+                 epsilon_decay = 0.01,
+                 epsilon_final = 0.01,
                  force_delta_max = 10.0,
                  seed_=None, **kwargs):
 
@@ -19,7 +21,9 @@ class TDAgent(DyadSliderAgent):
 
         self.gamma = discounting_coeff
         self.alpha = learning_rate
-        self.epsilon = epsilon
+        self.epsilon = epsilon_start
+        self.epsilon_decay = epsilon_decay
+        self.epsilon_final = epsilon_final
 
         if Q_init is None:
             self.Q_table = np.zeros((self.nS, self.nA))
@@ -98,4 +102,7 @@ class TDAgent(DyadSliderAgent):
 
     def reset(self):
         self.force = 0.0
-        self.reset_count += 1
+
+        self.epsilon -= self.epsilon_decay
+        if self.epsilon < self.epsilon_final:
+            self.epsilon = self.epsilon_final
