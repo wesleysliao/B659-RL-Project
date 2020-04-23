@@ -10,7 +10,7 @@ class TDAgent(DyadSliderAgent):
                  Q_init = None,
                  discounting_coeff = 1.0,
                  learning_rate = 0.01,
-                 epsilon = 0.01,
+                 epsilon= 0.02,
                  force_delta_max = 10.0,
                  seed_=None, **kwargs):
 
@@ -21,15 +21,17 @@ class TDAgent(DyadSliderAgent):
         self.alpha = learning_rate
         self.epsilon = epsilon
 
-
         if Q_init is None:
             self.Q_table = np.zeros((self.nS, self.nA))
+        elif np.isscalar(Q_init):
+            self.Q_table = Q_init * np.ones((self.nS, self.nA))
         else:
             self.Q_table = Q_init
 
         self.force_delta_max = force_delta_max
 
 
+        self.reset_count = 0
         super().__init__(**kwargs)
 
 
@@ -79,13 +81,12 @@ class TDAgent(DyadSliderAgent):
 
 
     def action_to_force(self, action):
-
         if action == 1:
-            return min(self.force + self.force_delta_max, self.force_max)
+            self.force = min(self.force + self.force_delta_max, self.force_max)
         elif action == 2:
-            return max(self.force - self.force_delta_max, self.force_min)
-        else:
-            return self.force
+            self.force = max(self.force - self.force_delta_max, self.force_min)
+
+        return self.force
 
 
     def effort(self, action):
@@ -93,3 +94,8 @@ class TDAgent(DyadSliderAgent):
         effort = (-1) * abs(force / 20)
 
         return effort
+
+
+    def reset(self):
+        self.force = 0.0
+        self.reset_count += 1

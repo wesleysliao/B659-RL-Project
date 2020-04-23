@@ -76,7 +76,7 @@ class DyadSliderAgent(object):
         return 0
 
 
-    def action_to_force(self, action, observation):
+    def action_to_force(self, action):
         force = action
         return force
 
@@ -92,6 +92,9 @@ class DyadSliderAgent(object):
                   + (self.c_effort * self.effort(last_action)))
 
         return reward
+
+    def reset(self):
+        pass
 
 
 
@@ -137,7 +140,7 @@ class PIDAgent(DyadSliderAgent):
         self.kI = kI
         self.kD = kD
 
-        self.error_sum = 0.0
+        self.reset()
 
         super().__init__(**kwargs)
 
@@ -148,3 +151,7 @@ class PIDAgent(DyadSliderAgent):
         action = (self.kP * error) + (self.kI * self.error_sum) + (self.kD * error_dot)
 
         return action
+
+
+    def reset(self):
+        self.error_sum = 0.0
