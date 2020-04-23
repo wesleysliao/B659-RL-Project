@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 
 import gym
 
-from agent import TDAgent, FixedAgent
+from agents.base import FixedAgent
+from agents.tdagent import TDAgent
 
 
 def dyad_slider_prep(seed = 1234):
@@ -35,7 +36,6 @@ def dyad_slider_prep(seed = 1234):
                    )
 
     return env
-
 
 
 
@@ -72,7 +72,7 @@ if __name__ == "__main__":
                     c_effort = 0.0,
                     )
 
-    episodes = 200000
+    episodes = 1000
     eval_resolution = 100
     eval_period = episodes / eval_resolution
     eval_episodes = 100
@@ -93,8 +93,8 @@ if __name__ == "__main__":
              if episode == episodes - 1:
                  env.render()
 
-             #p1.give_reward(env_state, env_reward, done)
-             p2.give_reward(env_state, env_reward, done)
+             p1.give_reward(env_reward, done, next_environment_state = env_state)
+             p2.give_reward(env_reward, done, next_environment_state = env_state)
 
              if done:
                   env.reset()

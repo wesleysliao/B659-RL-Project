@@ -4,7 +4,6 @@ import numpy as np
 from scipy.special import expit as sigmoid
 
 
-
 class DyadSliderAgent(object):
 
     def __init__(self,
@@ -43,7 +42,7 @@ class DyadSliderAgent(object):
         return self.force
 
 
-    def give_reward(self, reward, is_terminal):
+    def give_reward(self, reward, is_terminal, next_environment_state = None):
         self.reward_history.append(reward)
 
         subj_reward = self.subjective_reward(reward)
