@@ -1,5 +1,6 @@
 # CSCI B659 - Reinforcement Learning Final Project
 ### Developers: Saber Sheybani, Wesley Liao
+##### Spring 2020
 
 ## Notes for running the project:
 
