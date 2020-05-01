@@ -112,3 +112,6 @@ dmypy.json
 
 #rendered graphs
 *.png
+
+# ipynb checkpoints
+.ipynb_checkpoints/

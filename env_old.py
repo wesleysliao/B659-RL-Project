@@ -1,7 +1,7 @@
 import sys, os
 import importlib, time
 
-lib_dir = 'lib/'
+lib_dir = 'util/'
 default_config = 'configs/env_old_config.ini'
 sys.path.append(lib_dir)
 
