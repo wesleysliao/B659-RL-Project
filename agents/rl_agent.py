@@ -15,7 +15,7 @@ class DQNAgent(DyadSliderAgent):
     
     #__________________________ Interface methods
     def __init__(self, rl, pdcoef, buffer, perspective, sigma,
-                 hyperparams=None, force_rms=1., **kwargs):
+                 hyperparams=None, force_rms=1., role=None, c_negativef=None, **kwargs):
         super().__init__(force_max=20., force_min=-20.,
                        perspective=perspective, **kwargs)
         self.rl = rl
@@ -24,6 +24,8 @@ class DQNAgent(DyadSliderAgent):
         self.sigma = sigma
         self.force_rms = force_rms
         self.hp = hyperparams
+        self.role=role
+        self.c_negativef = c_negativef
     
     def set_train_hyperparams(self, hyperparams):
         self.hp = hyperparams
@@ -36,19 +38,19 @@ class DQNAgent(DyadSliderAgent):
             # Run one step of SGD using the whole batch data
             self.rl.step(self.buffer)
     
-    def get_force(self, env_state, eps=1., role=None, verbose=False):
+    def get_force(self, env_state, eps=1., verbose=False):
         
         # role=0: PID controller
         # role=1: do nothing.
         
-        if role is None:
+        if self.role is None:
             force, qvals = self._qbased_force(env_state, eps=eps)
             if verbose is True:
                 return force, qvals
             return force
-        elif role == 1:
+        elif self.role == 1:
             return 0.
-        elif role == 0:
+        elif self.role == 0:
             return self._apply_pid(env_state) #case: role=0
         else:
             raise ValueError('role should be in {0,1,None}')
@@ -74,7 +76,14 @@ class DQNAgent(DyadSliderAgent):
     #__________________________ Methods used by the agent itself
     
     def _compute_effort(self, force):
-        return self.c_effort* abs(force/self.force_rms)
+        scaled_force = force/self.force_rms
+        if self.c_negativef is not None:
+            if scaled_force<0:
+                return self.c_negativef*(-scaled_force)
+            else:
+                return self.c_effort* scaled_force
+        else:
+            return self.c_effort* abs(scaled_force)
     
     
     def _qbased_force(self, env_state, eps=0.):
