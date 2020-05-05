@@ -1,6 +1,7 @@
 # Benchmark functions
 # Originally written for agents from class DQNAgent
 import numpy as np
+import time
 
 def policy_ts(env, agent1, agent2):
     # Behavioral profile of the agents
@@ -85,3 +86,44 @@ def dyad_eval(env, agent1, agent2, n_episodes=100, normalizer=True):
         
     return np.mean(reward_vals, axis=0)
     
+    
+def benchmark(algo, hp, env, agent1, agent2, xaxis_params):
+    # Creates time series for algorithm quality across episodes
+    
+#     dyad_eval = dyad_eval
+    
+    t0 = time.time()
+    
+    # Unzip arguments
+    n_episodes, n_intervals, n_eval = xaxis_params
+    int_episodes=int(n_episodes/n_intervals)
+    
+    x, y = np.zeros(n_intervals+1), np.zeros(n_intervals+1)
+
+    x[0] = 0
+    y[0] = dyad_eval(env, agent1, agent2, n_episodes=1, normalizer=True)
+    
+    # Evaluate the created policy once every int_episodes episodes
+    for i in range(n_intervals):
+        print('Episode ', i*int_episodes, ': loss= ', y[i])
+        
+        for j in range(int_episodes):
+            agent1, agent2 = algo(env, agent1, agent2)
+            
+            if hp.target_int <= 1:
+                agent1.update_target_qnet()
+                agent2.update_target_qnet()
+            elif i*int_episodes+j % hp.target_int == 0:
+                agent1.update_target_qnet()
+            elif i*int_episodes+j % hp.target_int == int(hp.target_int/2):
+                agent2.update_target_qnet()
+            
+        x[i+1] = (i+1)*int_episodes
+        y[i+1] = dyad_eval(env, agent1, agent2, n_episodes=n_eval, normalizer=True)
+        
+        ct = time.time()
+        estimated_time_left = (n_intervals-i)*(ct-t0)/(i+1)
+        print('Estimated time left: ', estimated_time_left)
+        
+    print('Total Duration: ', (ct- t0)/60, ' Minutes')
+    return x,y, agent1, agent2
